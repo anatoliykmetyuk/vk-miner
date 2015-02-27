@@ -61,8 +61,8 @@ object StringMethods {
   // Given a sequence of words, computes the number of occurrences of each word
   // in the sequence. The resulting Seq[(Int, String)] is sorted so that most
   // frequent words go first.
-  def wordFrequencies(words: Seq[String]): Seq[(Int, String)] = 
-    words.toSet.toList.map {w: String => words.count(_ == w) -> w}.sorted.reverse
+  def wordFrequencies(words: Seq[String]): Seq[(Int, String)] =
+    words.groupBy(x => x).toSeq.map {case (k, v) => v.size -> k}.sortBy(_._1).reverse
 
   // Given a sequence of words, creates a mapping between the words
   // and their indices.

@@ -11,7 +11,7 @@ import org.apache.commons.io._
 import StringMethods._
 
 
-class Clusterization(val sc: SparkContext) {
+class Clusterization(sc: SparkContext) {
 
   def clusterize(docs: Seq[String], k: Int = 15, vectorSize: Int = 300, iterations: Int = 1000): Seq[(String, Int)] = {
     // 1. Extract words from the documents

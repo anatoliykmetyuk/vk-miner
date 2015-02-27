@@ -9,6 +9,7 @@ import org.json4s.native.JsonMethods._
 import org.json4s.JsonDSL._
 
 import vkminer._
+import StringMethods._
 
 class Analyzer(token: String, experimentName: String) {
   val api       = new VkApi(token)
@@ -32,6 +33,8 @@ class Analyzer(token: String, experimentName: String) {
 
     json.extract[Seq[User]]
   }
+
+  lazy val groups = model.flatMap(_.groups.map(_.name)).map(normalizeSentence).distinct
 
   def getData(userParams: Map[String, String] = Map(), groupParams: Map[String, String] = Map()) {
     retriever.users(userParams)

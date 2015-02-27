@@ -17,11 +17,12 @@ initialCommands := """
   |
   |implicit val formats = org.json4s.DefaultFormats
   |
-  |val token = "167a139a663b46cee17b96828bf71d9ed57975e4e576546237560cf9c235a4c921b892366ccbbbd95ece2"
+  |val token = "6408ab38a3280dc6f0f3ff7678db41ce4370dbc8ab359a18911d340eb7255250281dc627d53c9eca066fe"
+  |val academyGroupId = "59832613"
   |
   |def analyzer(name: String) = new Analyzer(token, name)
   |
-  |val sc = new SparkContext(new SparkConf().setAppName("I own it!").setMaster("local"))
+  |val sc = new SparkContext(new SparkConf().setAppName("I own it!").setMaster("local[2]"))
   |val clusterization = new Clusterization(sc)
   |import clusterization._
 """.stripMargin

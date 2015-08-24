@@ -1,35 +1,31 @@
-sbtVersion   := "0.13.7"
-scalaVersion := "2.11.5"
+lazy val p = (project in file(".")).settings(
+  sbtVersion   := "0.13.7"
+, scalaVersion := "2.11.7"
 
-initialCommands := """
-  |import vkminer._
-  |import vkminer.analyzer._
-  |
-  |import org.json4s._
-  |import org.json4s.native.JsonMethods._
-  |import org.json4s.JsonDSL._
-  |
-  |import org.apache.spark.SparkContext
-  |import org.apache.spark.SparkContext._
-  |import org.apache.spark.SparkConf
-  |
-  |import StringMethods._
-  |
-  |implicit val formats = org.json4s.DefaultFormats
-  |
-  |val token = "6408ab38a3280dc6f0f3ff7678db41ce4370dbc8ab359a18911d340eb7255250281dc627d53c9eca066fe"
-  |val academyGroupId = "59832613"
-  |
-  |def analyzer(name: String) = new Analyzer(token, name)
-  |
-  |val sc = new SparkContext(new SparkConf().setAppName("I own it!").setMaster("local[2]"))
-  |val clusterization = new Clusterization(sc)
-  |import clusterization._
-""".stripMargin
+, initialCommands := """
+    |import vkminer._
+    |import Main._
+    |
+    |import org.json4s._
+    |import org.json4s.native.JsonMethods._
+    |import org.json4s.JsonDSL._
+    |
+    |import scala.xml._
+    |
+    |val token = "8e5dbd93029a09d3e725e2110a2357a791e23eae30d66b5a9e44422eb9cd6115f525ab4f8bfc4fcd19d34"
+    |val api = new VkApi(token)
+    |val gb = new GraphBuilder(api)
+  """.stripMargin
 
-libraryDependencies ++= Seq(
-  "commons-io" % "commons-io" % "2.4",
-  "org.apache.httpcomponents" % "httpclient" % "4.4",
-  "org.json4s" %% "json4s-native" % "3.2.11",
-  "org.apache.spark" %% "spark-mllib" % "1.2.1"
+, libraryDependencies ++= Seq(
+    "commons-io" % "commons-io" % "2.4",
+    "org.apache.httpcomponents" % "httpclient" % "4.4",
+    "org.json4s" %% "json4s-native" % "3.2.11",
+    "org.apache.spark" %% "spark-mllib" % "1.2.1"
+
+  , "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
+  )
+
+, javaOptions += "-Xmx4g"
+, javaOptions += "-Xms2g"
 )

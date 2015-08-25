@@ -97,23 +97,3 @@ class GraphBuilder(api: VkApi) {
   }
 }
 
-
-case class Graph(users: Seq[User], edges: Seq[Edge]) {
-  def toXml: Node =
-<network>
-  <users>
-    {for (u <- users) yield u.toXml}
-  </users>
-  <edges>
-    {for (e <- edges) yield e.toXml}
-  </edges>
-</network> 
-}
-
-object Graph {
-  def apply(node: Node): Graph = {
-    val users = (node \ "users" \ "_").map(User(_))
-    val edges = (node \ "edges" \ "_").map(Edge(_))
-    Graph(users, edges)
-  }
-}

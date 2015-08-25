@@ -4,7 +4,8 @@ lazy val p = (project in file(".")).settings(
 
 , initialCommands := """
     |import vkminer._
-    |import Main._
+    |import vkminer.dom._
+    |// import Main._
     |
     |import org.json4s._
     |import org.json4s.native.JsonMethods._
@@ -12,9 +13,11 @@ lazy val p = (project in file(".")).settings(
     |
     |import scala.xml._
     |
-    |val token = "8e5dbd93029a09d3e725e2110a2357a791e23eae30d66b5a9e44422eb9cd6115f525ab4f8bfc4fcd19d34"
-    |val api = new VkApi(token)
-    |val gb = new GraphBuilder(api)
+    |val token = "d3603ecc9af57544363fa490b25a065bebf6b921ba6f9aaa1dbca3dd506f048cda218eccefb16cff71791&expires_in=86400&user_id=50051025"
+    |// val gb = new GraphBuilder(api)
+    |
+    |val e = new VkEnvironment {val api = new VkApi(token)}
+    |import e._
   """.stripMargin
 
 , libraryDependencies ++= Seq(
@@ -28,4 +31,6 @@ lazy val p = (project in file(".")).settings(
 
 , javaOptions += "-Xmx4g"
 , javaOptions += "-Xms2g"
+
+, excludeFilter := "Graph.scala" || "Main.scala"
 )

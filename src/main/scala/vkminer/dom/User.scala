@@ -5,60 +5,129 @@ import scala.xml._
 import org.json4s._
 import org.json4s.native.JsonMethods._
 
-
 trait UserComponent {this: VkEnvironment =>
 
-  case class User(uid: Long, firstName: String, lastName: String) {
+  case class User(
+    id       : String
+  , firstName: String
+  , lastName : String
+
+  , sex       : Int
+  , birthday  : Option[String]
+  , occupation: Option[String]
+  , homeTown  : Option[String]
+  ) {
+
+    def age: Option[Int] = {
+      val bdayPat = """(\d+).(\d+).(\d+)""".r
+      birthday.flatMap {
+        case bdayPat(d, m, y) =>
+          import java.util.Calendar
+          import Calendar._
+
+          val now  = Calendar.getInstance
+          val bday = Calendar.getInstance
+          bday.set(y.toInt, m.toInt - 1, d.toInt)
+
+          val diff = now.getTimeInMillis - bday.getTimeInMillis
+          Some(diff / 1000 / 60 / 60 / 24 / 365).map(_.toInt)
+
+        case _ => None
+      }
+    }
+
     def toXml =
       <user>
-        <uid>{uid}</uid>
+        <id>{id}</id>
         <firstName>{firstName}</firstName>
         <lastName>{lastName}</lastName>
+   
+        <sex>{sex}</sex>
+        {birthday  .map {b => <birthday>{b}</birthday>    }.getOrElse(())}
+        {occupation.map {o => <occupation>{o}</occupation>}.getOrElse(())}
+        {homeTown  .map {h => <homeTown>{h}</homeTown>    }.getOrElse(())}
       </user>
   }
 
   object User {
-    def apply(node: Node): User = User(
-      uid       = (node \ "uid").text.toLong
-    , firstName = (node \ "firstName").text
-    , lastName  = (node \ "lastName" ).text
+    def apply(implicit node: Node): User = User(
+      id        = extractXml("id"      ).get
+    , firstName = extractXml("firstName").get
+    , lastName  = extractXml("lastName" ).get
+
+    , sex        = extractXml("sex"       ).get.toInt
+    , birthday   = extractXml("birthday"  )
+    , occupation = extractXml("occupation")
+    , homeTown   = extractXml("homeTown"  )
     )
 
-    def apply(json: JValue): User = User(
-      uid       = (json \ "uid"       ).extract[Long  ]
-    , firstName = (json \ "first_name").extract[String]
-    , lastName  = (json \ "last_name" ).extract[String]
+    def apply(implicit json: JValue): User = User(
+      id        = "us" + extractJson("id" ).get
+    , firstName = extractJson("first_name").get
+    , lastName  = extractJson("last_name" ).get
+
+    , sex        = extractJson("sex").get.toInt
+    , birthday   = extractJson("bdate")
+    , occupation = extractJson("type")(json \ "occupation")
+    , homeTown   = extractJson("home_town")
     )
   }
+
 }
 
-trait EdgeComponent {
-  class Edge(_uid1: Long, _uid2: Long) {
-    val uid1 = math.min(_uid1, _uid2)
-    val uid2 = math.max(_uid1, _uid2)
+trait LocationComponent {this: VkEnvironment =>
 
-    override def equals(that: Any): Boolean = that match {
-      case e: Edge => uid1 == e.uid1 && uid2 == e.uid2
-      case _ => false
-    }
-
-    override def hashCode = (uid1 + uid2).toInt
-
-    override def toString = s"Edge($uid1, $uid2)"
-
+  case class Location(name: String, tpe: String, id: String) {
     def toXml =
-      <edge>
-        <uid1>{uid1}</uid1>
-        <uid2>{uid2}</uid2>
-      </edge>
+      <location>
+        <name>{name}</name>
+        <type>{tpe}</type>
+        <id>{id}</id>
+      </location>
   }
 
-  object Edge {
-    def apply(uid1: Long, uid2: Long): Edge = new Edge(uid1, uid2)
-    def apply(node: Node): Edge = Edge(
-      uid1 = (node \ "uid1").text.toLong
-    , uid2 = (node \ "uid2").text.toLong
+  object Location {
+    def apply(implicit node: Node): Location = Location(
+      name = extractXml("name").get
+    , tpe  = extractXml("type").get
+    , id   = extractXml("id"  ).get
     )
-  }
-}
 
+    def apply(json: JValue): Seq[Location] = {
+      val city = (json \ "city").toOption.map {implicit j => Location(
+        name = extractJson("title").get
+      , tpe  = "city"
+      , id   = "ci" + extractJson("id").get
+      )}
+
+      val country = (json \ "country").toOption.map {implicit j => Location(
+        name = extractJson("title").get
+      , tpe  = "country"
+      , id   = "co" + extractJson("id").get
+      )}
+
+      val university = (json \ "university").toOption.map {_ => Location(
+        name = extractJson("university_name")(json).get
+      , tpe  = "university"
+      , id   = "un" + extractJson("university")(json).get
+      )}
+
+      val universities = (json \ "universities").extract[Seq[JValue]].map {implicit uni => Location(
+        name = extractJson("name").get
+      , tpe  = "university"
+      , id   = "un" + extractJson("id").get
+      )}
+
+      val schools = (json \ "schools").extract[Seq[JValue]].map {implicit school => Location(
+        name = extractJson("name").get
+      , tpe  = "school"
+      , id   = "sc" + extractJson("id").get
+      )}
+
+      implicit def optToSeq[T](opt: Option[T]): Seq[T] = opt.map(Seq(_)).getOrElse(Nil)
+      
+      (universities ++ schools ++ city ++ country ++ university).distinct
+    }
+  }
+
+}

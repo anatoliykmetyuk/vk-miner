@@ -8,6 +8,30 @@ import org.json4s._
 import org.json4s.native.JsonMethods._
 
 trait UserComponent {this: VkEnvironment =>
+  val userFields = "sex,bdate,city,country,home_town,education,universities,schools,occupation,relation"
+
+  object users {
+    def get(ids: String*): JValue = api.method(
+      "users.get"
+    , Map(
+        "user_ids" -> ids.mkString(",")
+      , "fields"   -> userFields
+      , "v"        -> "5.37"
+      )
+    )
+  }
+
+  object friends {
+    def get(u: User): JValue = api.method(
+      "friends.get"
+    , Map(
+        "user_id" -> u.id.drop(2)
+      , "fields"  -> userFields
+      , "v"       -> "5.37"
+      )
+    )
+  }
+
 
   case class User(
     id       : String

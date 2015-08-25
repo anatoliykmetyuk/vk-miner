@@ -56,6 +56,9 @@ trait GraphComponent {this: VkEnvironment =>
       if (sourceId.hashCode < targetId.hashCode) Edge(sourceId, targetId)
       else                                       Edge(targetId, sourceId)
     }
+
+    def uOneToMany(source: GraphNode, targets: Seq[GraphNode]): Seq[Edge] =
+      targets.map(t => Edge(source.id, t.id))
   }
 
 }

@@ -5,6 +5,8 @@ lazy val p = (project in file(".")).settings(
 , initialCommands := """
     |import vkminer._
     |import vkminer.dom._
+    |import vkminer.serialize._
+    |import vkminer.strategies._
     |// import Main._
     |
     |import org.json4s._
@@ -16,8 +18,13 @@ lazy val p = (project in file(".")).settings(
     |val token = "d3603ecc9af57544363fa490b25a065bebf6b921ba6f9aaa1dbca3dd506f048cda218eccefb16cff71791&expires_in=86400&user_id=50051025"
     |// val gb = new GraphBuilder(api)
     |
-    |val e = new VkEnvironment {val api = new VkApi(token)}
+    |val e = new VkEnvironment with XmlSerializerComponent {
+    |  val workingDirectory = "/Users/anatolii/Desktop"
+    |  val api = new VkApi(token)
+    |}
     |import e._
+    |
+    |val ego = new FullEgoGroup[e.type](e)
   """.stripMargin
 
 , libraryDependencies ++= Seq(

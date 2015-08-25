@@ -3,3 +3,8 @@ https://oauth.vk.com/authorize?client_id=4796925&scope=friends&redirect_uri=http
 d3603ecc9af57544363fa490b25a065bebf6b921ba6f9aaa1dbca3dd506f048cda218eccefb16cff71791&expires_in=86400&user_id=50051025
 
 sex,bdate,city,country,home_town,education,universities,schools,occupation,relation
+
+
+e.api.method("users.get", Map("user_ids" -> "13041522", "fields" -> "sex,bdate,city,country,home_town,education,universities,schools,occupation,relation", "v"->"5.37"))
+
+e.api.method("friends.get", Map("user_id" -> "13041522", "fields" -> "sex,bdate,city,country,home_town,education,universities,schools,occupation,relation", "v"->"5.37"))

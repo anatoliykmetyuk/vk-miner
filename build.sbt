@@ -32,5 +32,5 @@ lazy val p = (project in file(".")).settings(
 , javaOptions += "-Xmx4g"
 , javaOptions += "-Xms2g"
 
-, excludeFilter := "Graph.scala" || "Main.scala"
+, excludeFilter := "Main.scala"
 )

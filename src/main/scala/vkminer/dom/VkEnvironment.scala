@@ -7,7 +7,8 @@ import org.json4s.native.JsonMethods._
 
 trait VkEnvironment extends Extractors
                        with UserComponent
-                       with LocationComponent {
+                       with LocationComponent
+                       with GraphComponent {
   val api: VkApi
 
   implicit val jsonFormats = org.json4s.DefaultFormats

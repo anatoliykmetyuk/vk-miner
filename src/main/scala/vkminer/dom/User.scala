@@ -16,7 +16,7 @@ trait UserComponent {this: VkEnvironment =>
     , Map(
         "user_ids" -> ids.mkString(",")
       , "fields"   -> userFields
-      , "v"        -> "5.37"
+      , "v"        -> apiVersion
       )
     )
   }
@@ -27,7 +27,7 @@ trait UserComponent {this: VkEnvironment =>
     , Map(
         "user_id" -> u.id.drop(2)
       , "fields"  -> userFields
-      , "v"       -> "5.37"
+      , "v"       -> apiVersion
       )
     )
   }

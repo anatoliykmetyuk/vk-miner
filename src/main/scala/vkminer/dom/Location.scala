@@ -26,42 +26,83 @@ trait LocationComponent {this: VkEnvironment =>
     )
 
     /** User object JSON is supposed to be passed to this method. */
-    def apply(json: JValue): Seq[Location] = {
+    def apply(json: JValue): Graph = {
       def nonEmptyLocation(l: Location): Boolean = l.id.drop(2) != "0"
 
-      val city = (json \ "city").toOption.map {implicit j => Location(
+      // Current locations
+      val city: Option[Location] = (json \ "city").toOption.map {implicit j => Location(
         name = extractJson("title").get
       , tpe  = "city"
       , id   = "ci" + extractJson("id").get
       )}
 
-      val country = (json \ "country").toOption.map {implicit j => Location(
+      val country: Option[Location] = (json \ "country").toOption.map {implicit j => Location(
         name = extractJson("title").get
       , tpe  = "country"
       , id   = "co" + extractJson("id").get
       )}
 
-      val university = (json \ "university").toOption.map {_ => Location(
+      val currentLocation: Option[Graph] = city.map {c =>
+        Graph(Set(c, country.get), Set(Edge.undirected(c.id, country.get.id)))
+      }
+
+      val university: Option[Graph] = (json \ "university").toOption.map {_ => Location(
         name = extractJson("university_name")(json).get
       , tpe  = "university"
       , id   = "un" + extractJson("university")(json).get
-      )}.flatMap {u => if (nonEmptyLocation(u)) Some(u) else None}
+      )}.map {u => Graph(nodes = Set(u))}
 
-      val universities = (json \ "universities").extract[Seq[JValue]].map {implicit uni => Location(
-        name = extractJson("name").get
-      , tpe  = "university"
-      , id   = "un" + extractJson("id").get
-      )}.filter(nonEmptyLocation)
 
-      val schools = (json \ "schools").extract[Seq[JValue]].map {implicit school => Location(
-        name = extractJson("name").get
-      , tpe  = "school"
-      , id   = "sc" + extractJson("id").get
-      )}
+      // Helper extractors for archived locations
+      def extractCountry(implicit json: JValue) = Location(
+        id   = "co" + extractJson("country").get
+      , tpe  = "country"
+      , name = ""
+      )
 
-      implicit def optToSeq[T](opt: Option[T]): Seq[T] = opt.map(Seq(_)).getOrElse(Nil)
-      
-      (universities ++ schools ++ city ++ country ++ university).distinct
+      def extractCity(implicit json: JValue) = Location(
+        id   = "ci" + extractJson("city").get
+      , tpe  = "city"
+      , name = ""
+      )
+
+
+      // Archived locations
+      val universities: Graph = (json \ "universities").extract[Seq[JValue]].foldLeft(Graph()) {(g, u) =>
+        implicit val uni = u
+
+        val university = Location(
+          name = extractJson("name").get
+        , tpe  = "university"
+        , id   = "un" + extractJson("id").get
+        )
+        val country = extractCountry
+        val city    = extractCity
+
+        val locations = Seq(university, city, country)
+        val edges     = Edge.uAll(locations)
+        Graph(g.nodes ++ locations, g.edges ++ edges)
+      }
+
+      val schools = (json \ "schools").extract[Seq[JValue]].foldLeft(Graph()) {(g, s) =>
+        implicit val sc = s
+
+        val school = Location(
+          name = extractJson("name").get
+        , tpe  = "school"
+        , id   = "sc" + extractJson("id").get
+        )
+        val country = extractCountry
+        val city    = extractCity
+
+        val locations = Seq(school, country, city)
+        val edges     = Edge.uAll(locations)
+        Graph(g.nodes ++ locations, g.edges ++ edges)
+      }
+
+
+      // Result
+      (Seq(currentLocation, university).collect {case Some(g) => g}.reduce {_ ++ _} ++ universities ++ schools).sanitize
     }
   }
 

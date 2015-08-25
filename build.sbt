@@ -4,6 +4,7 @@ lazy val p = (project in file(".")).settings(
 
 , initialCommands := """
     |import vkminer._
+    |
     |import vkminer.dom._
     |import vkminer.serialize._
     |import vkminer.strategies._
@@ -15,7 +16,7 @@ lazy val p = (project in file(".")).settings(
     |
     |import scala.xml._
     |
-    |val token = "d3603ecc9af57544363fa490b25a065bebf6b921ba6f9aaa1dbca3dd506f048cda218eccefb16cff71791&expires_in=86400&user_id=50051025"
+    |val token = "057d39406a3c6d7229b6a0b58381b99de38fda2f633cdecca9244e41ed4a2d08b82c7004793783fc0b9a2"
     |// val gb = new GraphBuilder(api)
     |
     |val e = new VkEnvironment with XmlSerializerComponent {
@@ -23,6 +24,7 @@ lazy val p = (project in file(".")).settings(
     |  val api = new VkApi(token)
     |}
     |import e._
+    |val api = new VkApi(token)
     |
     |val ego = new FullEgoGroup[e.type](e)
   """.stripMargin

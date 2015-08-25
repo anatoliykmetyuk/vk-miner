@@ -8,3 +8,5 @@ sex,bdate,city,country,home_town,education,universities,schools,occupation,relat
 e.api.method("users.get", Map("user_ids" -> "13041522", "fields" -> "sex,bdate,city,country,home_town,education,universities,schools,occupation,relation", "v"->"5.37"))
 
 e.api.method("friends.get", Map("user_id" -> "13041522", "fields" -> "sex,bdate,city,country,home_town,education,universities,schools,occupation,relation", "v"->"5.37"))
+
+https://api.vk.com/method/friends.get?user_id=8379994&fields=1&access_token=057d39406a3c6d7229b6a0b58381b99de38fda2f633cdecca9244e41ed4a2d08b82c7004793783fc0b9a2

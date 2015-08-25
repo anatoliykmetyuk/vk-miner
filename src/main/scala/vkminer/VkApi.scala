@@ -13,8 +13,13 @@ import org.apache.commons.io._
 
 
 class VkApi(val token: String) {
+  System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
+  System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");
+  System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire.header", "debug");
+  System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient", "debug");
 
   def get(url: String): String = {
+
     val httpclient = HttpClients.createDefault()
     val httpGet    = new HttpGet(url)
     val response   = httpclient.execute(httpGet)

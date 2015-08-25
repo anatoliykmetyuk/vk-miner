@@ -10,6 +10,12 @@ trait GraphComponent {this: VkEnvironment =>
   trait GraphNode {
     val id: String
     def toXml: Node
+
+    override def equals(that: Any): Boolean =
+      if (!that.isInstanceOf[GraphNode]) false
+      else that.asInstanceOf[GraphNode].id == id
+
+    override def hashCode: Int = id.hashCode
   }
 
   case class Graph(nodes: Seq[GraphNode], edges: Seq[Edge]) {

@@ -19,7 +19,7 @@ lazy val p = (project in file(".")).settings(
     |val token = "057d39406a3c6d7229b6a0b58381b99de38fda2f633cdecca9244e41ed4a2d08b82c7004793783fc0b9a2"
     |// val gb = new GraphBuilder(api)
     |
-    |val e = new VkEnvironment with XmlSerializerComponent {
+    |val e = new VkEnvironment with XmlSerializerComponent with GexfSerializerComponent {
     |  val workingDirectory = "/Users/anatolii/Desktop"
     |  val api = new VkApi(token)
     |}

@@ -27,6 +27,8 @@ trait LocationComponent {this: VkEnvironment =>
 
     /** User object JSON is supposed to be passed to this method. */
     def apply(json: JValue): Seq[Location] = {
+      def nonEmptyLocation(l: Location): Boolean = l.id.drop(2) != "0"
+
       val city = (json \ "city").toOption.map {implicit j => Location(
         name = extractJson("title").get
       , tpe  = "city"
@@ -43,13 +45,13 @@ trait LocationComponent {this: VkEnvironment =>
         name = extractJson("university_name")(json).get
       , tpe  = "university"
       , id   = "un" + extractJson("university")(json).get
-      )}
+      )}.flatMap {u => if (nonEmptyLocation(u)) Some(u) else None}
 
       val universities = (json \ "universities").extract[Seq[JValue]].map {implicit uni => Location(
         name = extractJson("name").get
       , tpe  = "university"
       , id   = "un" + extractJson("id").get
-      )}
+      )}.filter(nonEmptyLocation)
 
       val schools = (json \ "schools").extract[Seq[JValue]].map {implicit school => Location(
         name = extractJson("name").get

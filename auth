@@ -2,4 +2,4 @@ https://oauth.vk.com/authorize?client_id=4796925&scope=friends&redirect_uri=http
 
 8e5dbd93029a09d3e725e2110a2357a791e23eae30d66b5a9e44422eb9cd6115f525ab4f8bfc4fcd19d34&expires_in=86400&user_id=50051025
 
-sex,bdate,city,country,home_town,contacts,education,universities,schools,counters,occupation,relatives,relation,personal
+sex,bdate,city,country,home_town,education,universities,schools,occupation,relation

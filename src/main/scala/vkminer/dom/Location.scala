@@ -9,6 +9,17 @@ import org.json4s.native.JsonMethods._
 
 trait LocationComponent {this: VkEnvironment =>
 
+  val universities: Map[String, (String, String)]
+
+  val LOCTYPE_CITY        = "city"
+  val LOCTYPE_CITY_PREFIX = "ci"
+
+  val LOCTYPE_COUNTRY        = "country"
+  val LOCTYPE_COUNTRY_PREFIX = "co"
+
+  val LOCTYPE_UNIVERSITY        = "university"
+  val LOCTYPE_UNIVERSITY_PREFIX = "un"
+
   case class Location(name: String, tpe: String, id: String) extends GraphNode {
     def toXml =
       <location>
@@ -48,11 +59,20 @@ trait LocationComponent {this: VkEnvironment =>
         Graph(nodes.asInstanceOf[Set[GraphNode]], edges.toSet)
       }
 
-      val university: Graph = (json \ "university").toOption.map {_ => Location(
+      // Current university
+      val university: Option[Location] = (json \ "university").toOption.map {_ => Location(
         name = extractJson("university_name")(json).get
       , tpe  = "university"
       , id   = "un" + extractJson("university")(json).get
-      )}.map {u => Graph(nodes = Set(u))}.getOrElse(Graph())
+      )}
+
+      def universityGraph(u: Location): Graph = universities.get(u.id.drop(2)).map {case (coId, ciId) =>
+        val city    = Location("", LOCTYPE_CITY   , LOCTYPE_CITY_PREFIX    + ciId)
+        val country = Location("", LOCTYPE_COUNTRY, LOCTYPE_COUNTRY_PREFIX + coId)
+        u ->: city ->: country ->: Graph.Nil
+      }.getOrElse(u ->: Graph.Nil)
+
+      val universityWithLocation: Graph = university.map {universityGraph}.getOrElse(Graph.Nil)
 
 
       // Helper extractors for archived locations
@@ -70,20 +90,16 @@ trait LocationComponent {this: VkEnvironment =>
 
 
       // Archived locations
-      val universities: Graph = (json \ "universities").extract[Seq[JValue]].foldLeft(Graph()) {(g, u) =>
+      val universitiesGraph: Graph = (json \ "universities").extract[Seq[JValue]].foldLeft(Graph()) {(g, u) =>
         implicit val uni = u
 
         val university = Location(
           name = extractJson("name").get
-        , tpe  = "university"
-        , id   = "un" + extractJson("id").get
+        , tpe  = LOCTYPE_UNIVERSITY
+        , id   = LOCTYPE_UNIVERSITY_PREFIX + extractJson("id").get
         )
-        val country = extractCountry
-        val city    = extractCity
 
-        val locations = Seq(university, city, country)
-        val edges     = Edge.uAll(locations)
-        Graph(g.nodes ++ locations, g.edges ++ edges)
+        g ++ universityGraph(university)
       }
 
       val schools = (json \ "schools").extract[Seq[JValue]].foldLeft(Graph()) {(g, s) =>
@@ -97,12 +113,10 @@ trait LocationComponent {this: VkEnvironment =>
         val country = extractCountry
         val city    = extractCity
 
-        val locations = Seq(school, country, city)
-        val edges     = Edge.uAll(locations)
-        Graph(g.nodes ++ locations, g.edges ++ edges)
+        g ++ (school ->: country ->: city ->: Graph.Nil)
       }
 
-      (currentLocation ++ university ++ universities ++ schools).sanitize
+      (currentLocation ++ universityWithLocation ++ universitiesGraph ++ schools).sanitize
     }
   }
 

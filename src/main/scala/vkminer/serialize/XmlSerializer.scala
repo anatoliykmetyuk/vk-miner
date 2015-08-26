@@ -7,7 +7,7 @@ import vkminer.dom.VkEnvironment
 
 trait XmlSerializerComponent extends SerializerComponent {this: VkEnvironment =>
 
-  object XmlSerializer extends Serializer {
+  object XmlSerializer extends Serializer[Graph] {
     val extension = "xml"
 
     override def serialize  (graph: Graph, name: String) {

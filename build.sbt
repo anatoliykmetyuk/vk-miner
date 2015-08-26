@@ -16,12 +16,15 @@ lazy val p = (project in file(".")).settings(
     |
     |import scala.xml._
     |
-    |val token = "057d39406a3c6d7229b6a0b58381b99de38fda2f633cdecca9244e41ed4a2d08b82c7004793783fc0b9a2"
+    |val token = "c962e3d9af45ff032ef168958cb1944a23084b2e13dd205829dd26e3df8a186e2b119bd920f5327f9efe5"
     |// val gb = new GraphBuilder(api)
     |
-    |val e = new VkEnvironment with XmlSerializerComponent with GexfSerializerComponent {
+    |val e = new VkEnvironment with XmlSerializerComponent
+    |                          with GexfSerializerComponent
+    |                          with UniversitiesSerializerComponent {
     |  val workingDirectory = "/Users/anatolii/Desktop"
     |  val api = new VkApi(token)
+    |  val universities = UniversitiesSerializer.deserialize("universities")
     |}
     |import e._
     |val api = new VkApi(token)

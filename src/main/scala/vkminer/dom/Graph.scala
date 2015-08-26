@@ -69,6 +69,8 @@ trait GraphComponent {this: VkEnvironment =>
       val edges = (node \ "edges" \ "_").map(Edge(_))
       Graph(nodes.toSet, edges.toSet)
     }
+
+    lazy val Nil: Graph = Graph()
   }
 
 

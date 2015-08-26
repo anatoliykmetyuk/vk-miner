@@ -7,15 +7,16 @@ import vkminer.dom.VkEnvironment
 
 trait GexfSerializerComponent extends SerializerComponent {this: VkEnvironment =>
 
-  object GexfSerializer extends Serializer {
+  object GexfSerializer extends Serializer[Graph] {
     val extension = "gexf"
 
     override def serialize  (graph: Graph, name: String) {
+      val bom    = "\uFEFF"
       val header = """<?xml version="1.0" encoding="UTF-8"?>"""
       val xmlRaw = produceXml(graph)
 
       val pp  = new PrettyPrinter(200, 2)
-      val xml = header + "\n" + pp.format(xmlRaw)
+      val xml = bom + header + "\n" + pp.format(xmlRaw)
       FileUtils.writeStringToFile(file(name), xml)
     }
 

@@ -48,8 +48,11 @@ trait GraphComponent {this: VkEnvironment =>
      * the dead edges (the ones who's source or destination is absent)
      */
     def sanitize: Graph = {
-      val newNodes    = nodes.filter {_.id.drop(2) != "0"}
-      val newNodesIds = nodes.map {_.id}
+      val newNodes    = nodes.filter {x =>
+        val num = x.id.drop(2)
+        !num.isEmpty && num.toLong > 0
+      }
+      val newNodesIds = newNodes.map {_.id}
       val newEdges    = edges.filter {e => newNodesIds.contains(e.sourceId) && newNodesIds.contains(e.targetId)}
       Graph(newNodes, newEdges)
     }

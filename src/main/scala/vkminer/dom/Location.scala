@@ -42,15 +42,17 @@ trait LocationComponent {this: VkEnvironment =>
       , id   = "co" + extractJson("id").get
       )}
 
-      val currentLocation: Option[Graph] = city.map {c =>
-        Graph(Set(c, country.get), Set(Edge.undirected(c.id, country.get.id)))
+      val currentLocation: Graph = {
+        val nodes = Set(city, country).collect {case Some(l) => l}
+        val edges = Edge.uAll(nodes.toSeq)
+        Graph(nodes.asInstanceOf[Set[GraphNode]], edges.toSet)
       }
 
-      val university: Option[Graph] = (json \ "university").toOption.map {_ => Location(
+      val university: Graph = (json \ "university").toOption.map {_ => Location(
         name = extractJson("university_name")(json).get
       , tpe  = "university"
       , id   = "un" + extractJson("university")(json).get
-      )}.map {u => Graph(nodes = Set(u))}
+      )}.map {u => Graph(nodes = Set(u))}.getOrElse(Graph())
 
 
       // Helper extractors for archived locations
@@ -100,9 +102,7 @@ trait LocationComponent {this: VkEnvironment =>
         Graph(g.nodes ++ locations, g.edges ++ edges)
       }
 
-
-      // Result
-      (Seq(currentLocation, university).collect {case Some(g) => g}.reduce {_ ++ _} ++ universities ++ schools).sanitize
+      (currentLocation ++ university ++ universities ++ schools).sanitize
     }
   }
 

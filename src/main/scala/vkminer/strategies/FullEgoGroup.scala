@@ -19,7 +19,7 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
       println(s"Iteration $iteration of $depth. Database size: ${graph.nodes.size}. Edges: ${graph.edges.size}.")
 
       // Obtain the new users friends of whom need to be esteblished and connected
-      val newUsers = (graph.nodes diff previous).filter(_.isInstanceOf[User]).map(_.asInstanceOf[User])
+      val newUsers = graph.nodes.diff(previous).collect {case u: User => u}
 
       // For each user, we'll obtain his all friends (with their locations),
       // and connect them to this user. The results will be aggreated to this graph.
@@ -34,7 +34,10 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
         // Yes, all these -->: and ->: methods are totally perverted and hard to read. But the
         // code became short and pretty! ^_^
         g ++ (user -->:[User] (friends.get(user) \ "response" \ "items").extract[Seq[JValue]]
-          .foldLeft(Graph()) {(g, fj) => g ++ (User(fj) ->: Location(fj))})
+          .foldLeft(Graph()) {(g, fj) =>
+            try g ++ (User(fj) ->: Location(fj))
+            catch {case t: Throwable => println(pretty(render(fj))); throw t}
+          })
       }
 
       // Finalize progress bar
@@ -48,7 +51,7 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
     val raw = loop(Set(), initialUserGraph, 0).sanitize
 
     println("Naming the graph")
-    nameGraph(raw)
+    nameGraph(raw).sanitize
   }
 
   /** Finds location nodes without names and tries to obtain their names by ids. */
@@ -70,7 +73,7 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
     val names = prefixed(countries, "co") ++ prefixed(cities, "ci")
 
     graph.copy(nodes = graph.nodes.map {
-      case l @ Location(name, tpe, id) if name.isEmpty => l.copy(name = names(name))
+      case l @ Location(name, tpe, id) if name.isEmpty => l.copy(name = names(id))
       case x => x
     })
   }

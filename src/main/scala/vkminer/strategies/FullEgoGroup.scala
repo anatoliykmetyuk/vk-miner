@@ -83,8 +83,8 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
     val filled = (size * ratio).toInt
     val empty  = (size - filled).toInt
 
-    val bar = s"$label: [${"#" * filled}${" " * empty}] ${(ratio * 100).toInt}% $i/$max"
-    print(s"\r$bar")
+    val bar = s"$label:\t[${"#" * filled}${" " * empty}] ${(ratio * 100).toInt}% $i/$max"
+    print(s"\r\033[K\r$bar")
   }
 
   def withProgressBar[T](i: Int, max: Int, label: String = "")(task: => T): T = {
@@ -103,7 +103,7 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
   case class Post   (postId: String, fromId: String, comments: Int, likes: Int, shares: Int) extends WallEntity
   case class Comment(postId: String, fromId: String, likes: Int                            ) extends WallEntity
 
-  def wallOf(id: String, count: Int = 20, printProgress: Boolean = false): Seq[Post] = {
+  def wallOf(id: String, count: Int = 20, printProgress: Boolean = true): Seq[Post] = {
     def postsOf(filter: String, idx: Int): Seq[Post] = {
       def task = (wall.get(id, filter, count / 2) \ "response" \ "items").extract[Seq[JValue]].map {implicit j =>
         Post(extractJson("id").get, extractJson("from_id").get,
@@ -111,18 +111,18 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
           extractJson("count")(j \ "reposts").get.toInt)
       }
 
-      if (printProgress) withProgressBar(idx, 2, "Wall posts")(task)
+      if (printProgress) withProgressBar(idx, 2, "Posts")(task)
       else task
     }
 
     postsOf("owner", 0) ++ postsOf("others", 1)
   }
 
-  def commentsOf(wallOwnerId: String, posts: Seq[Post], printProgress: Boolean = false): Seq[Comment] = {
+  def commentsOf(wallOwnerId: String, posts: Seq[Post], printProgress: Boolean = true): Seq[Comment] = {
     val haveComments = posts.filter(_.comments > 0)
 
     haveComments.zipWithIndex.flatMap {case (Post(postId, _, comments, _, _), idx) =>
-      def task = (wall.getComments(wallOwnerId, postId, comments) \ "response" \ "items").extract[Seq[JValue]].map {implicit j =>
+      def task = (wall.getComments(wallOwnerId, postId) \ "response" \ "items").extract[Seq[JValue]].map {implicit j =>
         Comment(extractJson("id").get, extractJson("from_id").get, extractJson("count")(j \ "likes").get.toInt)
       }
 
@@ -132,7 +132,7 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
   }
 
 
-  def likesOrSharesOf(wallOwnerId: String, entities: Seq[WallEntity], likesFilter: Boolean, printProgress: Boolean = false): Seq[String] = {
+  def likesOrSharesOf(wallOwnerId: String, entities: Seq[WallEntity], likesFilter: Boolean, printProgress: Boolean = true): Seq[String] = {
     val target =
       if (likesFilter) entities.filter(_.likes  > 0)
       else       entities.collect {case p @ Post(_, _, _, _, shares) if shares > 0 => p}
@@ -150,12 +150,39 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
   }
 
   /** People who like these. */
-  def likesOf(wallOwnerId: String, entities: Seq[WallEntity], printProgress: Boolean = false): Seq[String] =
+  def likesOf(wallOwnerId: String, entities: Seq[WallEntity], printProgress: Boolean = true): Seq[String] =
     likesOrSharesOf(wallOwnerId, entities, true, printProgress)
   
   /** People who shared these. */
-  def sharesOf(wallOwnerId: String, entities: Seq[WallEntity], printProgress: Boolean = false): Seq[String] =
+  def sharesOf(wallOwnerId: String, entities: Seq[WallEntity], printProgress: Boolean = true): Seq[String] =
     likesOrSharesOf(wallOwnerId, entities, false, printProgress)
+
+
+  def wallVisitors(wallOwnerId: String): Seq[(String, Double)] = {
+    def pb[T](i: Int)(task: => T): T = withProgressBar[T](i, 4, "User") {
+      println()
+      val result = task
+      print("\033[1A")
+      result
+    }
+
+    val posts    = pb(0) {wallOf    (wallOwnerId)}
+    val comments = pb(1) {commentsOf(wallOwnerId, posts)}
+
+    val entities: Seq[WallEntity] = posts ++ comments
+
+    val uLikes  = pb(2) {likesOf (wallOwnerId, entities)}
+    val uShares = pb(3) {sharesOf(wallOwnerId, entities)}
+
+    val lowPriority : Seq[(String, Double)] = (uLikes ++ uShares)   .groupBy(x => x).toSeq.map {case (k, v) => k -> v.size / 10D   }
+    val highPriority: Seq[(String, Double)] = entities.map(_.fromId).groupBy(x => x).toSeq.map {case (k, v) => k -> v.size.toDouble}
+  
+    (lowPriority ++ highPriority)
+      .groupBy {case (k, _ ) => k}
+      .map     {case (k, vs) => k -> vs.map(_._2).sum}
+      .filter  {case (k, _ ) => k != wallOwnerId}
+      .toSeq
+  }
 
 
 }

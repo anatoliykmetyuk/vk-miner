@@ -47,11 +47,10 @@ trait GraphComponent {this: VkEnvironment =>
     def ++(g: Graph): Graph = Graph(nodes ++ g.nodes, edges ++ g.edges)
     
     /** Union of two graphs, where common edges have weights added. */
-    def +!+(g: Graph): Graph =
-      this.copy(edges = edges diff g.edges) ++ g.copy(edges = g.edges.map {e => edges.find(_ == e) match {
-        case Some(Edge(_, _, w2)) => e.copy(weight = e.weight + w2)
-        case None => e
-      }})
+    def +!+(g: Graph): Graph = Graph(
+      nodes = nodes ++ g.nodes,
+      edges = (edges.toSeq ++ g.edges.toSeq).groupBy(x => x).map {case (_, seq) => seq.reduce {(a, b) => a.copy(weight = a.weight + b.weight)}}.toSet
+    )
 
     /** Links this node to every node of this graph. */
     def ->:(node: GraphNode) =

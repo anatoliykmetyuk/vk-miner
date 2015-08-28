@@ -26,7 +26,7 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
       // For each user, we'll obtain his all friends (with their locations),
       // and connect them to this user. The results will be aggreated to this graph.
       val iterationGraph = newUsers.toList.zipWithIndex.foldLeft(Graph()) {case (g, (user, i)) =>
-        progressBar(i, newUsers.size)
+        progressBar(i, newUsers.size, "Progress")
         println()
 
         val friendsGraph: Graph = withProgressBar(0, 5, "User") {
@@ -55,7 +55,8 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
       }
 
       // Finalize progress bar
-      progressBar(newUsers.size, newUsers.size); println()
+      progressBar(newUsers.size, newUsers.size, "Progress")
+      print("\033[4B\n\r")
 
       loop(graph.nodes, graph ++ iterationGraph, iteration + 1)
     }
@@ -63,8 +64,6 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
     else Graph(previous, graph.edges)
     
     val raw = loop(Set(), initialUserGraph, 0).sanitize
-
-    print("\033[3B")
 
     println("Naming unnamed users")
     val withUserNames = nameUsers(raw).sanitize
@@ -114,12 +113,13 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
     })
   }
 
-  def progressBar(i: Int, max: Int, label: String = "", size: Int = 100) {
+  def progressBar(i: Int, max: Int, label: String = "", size: Int = 50, spacing: Int = 20) {
     val ratio  = i.toDouble / max
     val filled = (size * ratio).toInt
     val empty  = (size - filled).toInt
+    val spaces = " " * (spacing - label.size)
 
-    val bar = s"$label:\t[${"#" * filled}${" " * empty}] ${(ratio * 100).toInt}% $i/$max"
+    val bar = s"$label:$spaces[${"#" * filled}${" " * empty}] ${(ratio * 100).toInt}% $i/$max"
     print(s"\r\033[K\r$bar")
   }
 
@@ -195,20 +195,20 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
 
 
   def wallVisitors(wallOwnerId: String): Seq[(String, Double)] = {
-    def pb[T](i: Int)(task: => T): T = withProgressBar[T](i, 4, "User") {
+    def pb[T](i: Int)(task: => T): T = withProgressBar[T](i, 5, "User") {
       println()
       val result = task
       print("\033[1A")
       result
     }
 
-    val posts    = pb(0) {wallOf    (wallOwnerId)}
-    val comments = pb(1) {commentsOf(wallOwnerId, posts)}
+    val posts    = pb(1) {wallOf    (wallOwnerId)}
+    val comments = pb(2) {commentsOf(wallOwnerId, posts)}
 
     val entities: Seq[WallEntity] = posts ++ comments
 
-    val uLikes  = pb(2) {likesOf (wallOwnerId, entities)}
-    val uShares = pb(3) {sharesOf(wallOwnerId, entities)}
+    val uLikes  = pb(3) {likesOf (wallOwnerId, entities)}
+    val uShares = pb(4) {sharesOf(wallOwnerId, entities)}
 
     val lowPriority : Seq[(String, Double)] = (uLikes ++ uShares)   .groupBy(x => x).toSeq.map {case (k, v) => k -> v.size / 10D   }
     val highPriority: Seq[(String, Double)] = entities.map(_.fromId).groupBy(x => x).toSeq.map {case (k, v) => k -> v.size.toDouble}

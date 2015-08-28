@@ -10,6 +10,8 @@ import org.json4s.native.JsonMethods._
 trait UserComponent {this: VkEnvironment =>
   val userFields = "sex,bdate,city,country,home_town,education,universities,schools,occupation,relation"
 
+  val USER_PREFIX = "us"
+
   object users {
     def get(ids: String*): JValue = api.method(
       "users.get"
@@ -97,6 +99,8 @@ trait UserComponent {this: VkEnvironment =>
     , occupation = extractJson("type")(json \ "occupation")
     , homeTown   = extractJson("home_town")
     )
+  
+    lazy val Nil = User("", "", "", -1, None, None, None)
   }
 
 }

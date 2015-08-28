@@ -1,5 +1,7 @@
 package vkminer.strategies
 
+import scala.language.implicitConversions
+
 import vkminer.dom.VkEnvironment
 
 import org.json4s._
@@ -25,6 +27,22 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
       // and connect them to this user. The results will be aggreated to this graph.
       val iterationGraph = newUsers.toList.zipWithIndex.foldLeft(Graph()) {case (g, (user, i)) =>
         progressBar(i, newUsers.size)
+        println()
+
+        val friendsGraph: Graph = withProgressBar(0, 5, "User") {
+          user -->:[User] (friends.get(user) \ "response" \ "items").extract[Seq[JValue]]
+            .foldLeft(Graph()) {(g, fj) =>
+              try g ++ (User(fj) ->: Location(fj))
+              catch {case t: Throwable => println(pretty(render(fj))); throw t}
+            }
+        }
+
+        val visitorsGraph: Graph = wallVisitors(user.id.drop(2)).foldLeft(Graph.Nil) {case (g, (uid, weight)) =>
+          val visitor = User.Nil.copy(id = USER_PREFIX + uid)
+          val edge    = Edge.undirected(user.id, visitor.id, weight)
+          g ++ Graph(Set(visitor), Set(edge))
+        }
+        print("\033[1A")
 
         // Call to VK API's "friends.get" method - get all the user's friends.
         // For each returned user, parse himself and his locations. Connect everything
@@ -33,11 +51,7 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
         // Finally, add the resulting graph into the acummulator `g`.
         // Yes, all these -->: and ->: methods are totally perverted and hard to read. But the
         // code became short and pretty! ^_^
-        g ++ (user -->:[User] (friends.get(user) \ "response" \ "items").extract[Seq[JValue]]
-          .foldLeft(Graph()) {(g, fj) =>
-            try g ++ (User(fj) ->: Location(fj))
-            catch {case t: Throwable => println(pretty(render(fj))); throw t}
-          })
+        g +!+ friendsGraph +!+ visitorsGraph
       }
 
       // Finalize progress bar
@@ -50,9 +64,31 @@ class FullEgoGroup[E <: VkEnvironment](val e: E) {
     
     val raw = loop(Set(), initialUserGraph, 0).sanitize
 
+    print("\033[3B")
+
+    println("Naming unnamed users")
+    val withUserNames = nameUsers(raw).sanitize
+
     println("Naming the graph")
-    nameGraph(raw).sanitize
+    val withLocationNames = nameGraph(raw).sanitize
+  
+    println("Sanitizing location edges")
+    locationEdgesToOne(withLocationNames).sanitize
   }
+
+  def nameUsers(graph: Graph): Graph = {
+    val unnamedIds: Set[String] = graph.nodes.collect {case u: User if u.firstName.isEmpty && u.lastName.isEmpty => u.id}
+    val namedUsers: Graph = (users.get(unnamedIds.map(_.drop(2)).toSeq: _*) \ "response").extract[Seq[JValue]].foldLeft(Graph.Nil) {(g, uj) =>
+      g ++ (User(uj) ->: Location(uj))
+    }
+
+    graph.copy(nodes = graph.nodes.filter {n: GraphNode => !unnamedIds(n.id)}) ++ namedUsers
+  }
+
+  def locationEdgesToOne(graph: Graph): Graph = graph.copy(edges = graph.edges.map {
+    case Edge(s, d, _) if s.isLocation || d.isLocation => Edge(s, d, 1)
+    case x => x  
+  })
 
   /** Finds location nodes without names and tries to obtain their names by ids. */
   def nameGraph(graph: Graph): Graph = {

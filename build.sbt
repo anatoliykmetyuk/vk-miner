@@ -16,7 +16,7 @@ lazy val p = (project in file(".")).settings(
     |
     |import scala.xml._
     |
-    |val token = "c962e3d9af45ff032ef168958cb1944a23084b2e13dd205829dd26e3df8a186e2b119bd920f5327f9efe5"
+    |val token = "4469ea62706d65df37a86c02807ca7b2147091a56df92e9cf3fb826719030382fc02aeb31a3cd0f72202f"
     |// val gb = new GraphBuilder(api)
     |
     |val e = new VkEnvironment with XmlSerializerComponent

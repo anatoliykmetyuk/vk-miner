@@ -20,6 +20,9 @@ trait LocationComponent {this: VkEnvironment =>
   val LOCTYPE_UNIVERSITY        = "university"
   val LOCTYPE_UNIVERSITY_PREFIX = "un"
 
+  val LOCTYPE_SCHOOL        = "school"
+  val LOCTYPE_SCHOOL_PREFIX = "sc"
+
   case class Location(name: String, tpe: String, id: String) extends GraphNode {
     def toXml =
       <location>

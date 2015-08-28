@@ -7,6 +7,17 @@ import scala.xml._
 
 trait GraphComponent {this: VkEnvironment =>
 
+  implicit class IdRefinements(id: String) {
+    def isLocation = isCity || isCountry || isSchool || isUniversity
+  
+    def isCity       = hasPrefix(LOCTYPE_CITY_PREFIX      )
+    def isCountry    = hasPrefix(LOCTYPE_COUNTRY_PREFIX   )
+    def isSchool     = hasPrefix(LOCTYPE_SCHOOL_PREFIX    )
+    def isUniversity = hasPrefix(LOCTYPE_UNIVERSITY_PREFIX)
+
+    def hasPrefix(prefix: String) = id startsWith prefix
+  }
+
   trait GraphNode {
     val id: String
     def toXml: Node
@@ -35,6 +46,13 @@ trait GraphComponent {this: VkEnvironment =>
     /** Computes the union of the two graphs. */
     def ++(g: Graph): Graph = Graph(nodes ++ g.nodes, edges ++ g.edges)
     
+    /** Union of two graphs, where common edges have weights added. */
+    def +!+(g: Graph): Graph =
+      this.copy(edges = edges diff g.edges) ++ g.copy(edges = g.edges.map {e => edges.find(_ == e) match {
+        case Some(Edge(_, _, w2)) => e.copy(weight = e.weight + w2)
+        case None => e
+      }})
+
     /** Links this node to every node of this graph. */
     def ->:(node: GraphNode) =
       Graph(nodes + node, edges ++ nodes.map {n => Edge.undirected(node.id, n.id)})
@@ -74,23 +92,32 @@ trait GraphComponent {this: VkEnvironment =>
   }
 
 
-  case class Edge(sourceId: String, targetId: String) {
+  case class Edge(sourceId: String, targetId: String, weight: Double = 1) {
     def toXml =
       <edge>
         <source>{sourceId}</source>
         <target>{targetId}</target>
+        <weight>{weight}</weight>
       </edge>
+
+    override def equals(e2: Any): Boolean = e2 match {
+      case Edge(s, d, _) => s == sourceId && d == targetId
+      case _ => false
+    }
+
+    override def hashCode = sourceId.hashCode + targetId.hashCode
   }
 
   object Edge {
     def apply(implicit node: Node): Edge = Edge(
       sourceId = extractXml("source").get
     , targetId = extractXml("target").get
+    , weight   = extractXml("weight").get.toDouble
     )
 
-    def undirected(sourceId: String, targetId: String) = {
-      if (sourceId.hashCode < targetId.hashCode) Edge(sourceId, targetId)
-      else                                       Edge(targetId, sourceId)
+    def undirected(sourceId: String, targetId: String, weight: Double = 1) = {
+      if (sourceId.hashCode < targetId.hashCode) Edge(sourceId, targetId, weight)
+      else                                       Edge(targetId, sourceId, weight)
     }
 
     def uOneToMany(source: GraphNode, targets: Seq[GraphNode]): Seq[Edge] =

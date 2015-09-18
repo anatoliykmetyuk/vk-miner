@@ -11,12 +11,17 @@ import generic._
 
 trait FullEgoGroup extends FriendsExpansion {import e._
 
-  def apply(id: String, depth: Int = 1, truncateOutskirts: Boolean = true): Graph = {
+  def apply(id: String, depth: Int = 1, truncateOutskirts: Boolean = true, wall: Boolean = true): Graph = {
     val initialUserJson  = (users.get(id) \ "response")(0)
     val initialUserGraph = User(initialUserJson) ->: Location(initialUserJson)
 
     println(s"Initial graph: $initialUserGraph")
-    name {friendsLoop(graph = initialUserGraph, depth = depth, truncateOutskirts = truncateOutskirts)}
+    name {friendsLoop(
+      graph = initialUserGraph
+    , depth = depth
+    , truncateOutskirts = truncateOutskirts
+    , wall              = wall
+    )}
   }
 
 }

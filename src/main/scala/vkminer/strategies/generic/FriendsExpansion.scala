@@ -18,6 +18,7 @@ trait FriendsExpansion extends BasicStrategy with ProgressBar with Wall {import 
   , iteration        : Int = 0
   , truncateOutskirts: Boolean = true
   , depth            : Int = 1
+  , wall             : Boolean = true
   ): Graph = if (iteration <= depth) {
       println(s"Iteration $iteration of $depth. Database size: ${graph.nodes.size}. Edges: ${graph.edges.size}.")
 
@@ -28,36 +29,37 @@ trait FriendsExpansion extends BasicStrategy with ProgressBar with Wall {import 
       // and connect them to this user. The results will be aggreated to this graph.
       val iterationGraph = newUsers.toList.zipWithIndex.foldLeft(Graph()) {case (g, (user, i)) =>
         progressBar(i, newUsers.size, "Progress")
-        println()
+        if (wall) println()
 
-        val friendsGraph: Graph = withProgressBar(0, 5, "User") {
-          user -->:[User] (friends.get(user) \ "response" \ "items").extract[Seq[JValue]]
-            .foldLeft(Graph()) {(g, fj) =>
-              try g ++ (User(fj) ->: Location(fj))
-              catch {case t: Throwable => println(pretty(render(fj))); throw t}
-            }
+        val friendsGraph: Graph = {
+          def task = user -->:[User] (friends.get(user) \ "response" \ "items").extract[Seq[JValue]]
+            .foldLeft(Graph()) {(g, fj) => g ++ (User(fj) ->: Location(fj))}
+
+          if (wall) withProgressBar(0, 5, "User") {task} else task
         }
 
-        val visitorsGraph: Graph = wallVisitors(user.id.drop(2)).foldLeft(Graph.Nil) {case (g, (uid, weight)) =>
-          val visitor = User.Nil.copy(id = USER_PREFIX + uid)
-          val edge    = Edge.undirected(user.id, visitor.id, weight)
-          g ++ Graph(Set(visitor), Set(edge))
-        }
-        print("\033[1A")
+        if (wall) {
+          val visitorsGraph: Graph = wallVisitors(user.id.drop(2)).foldLeft(Graph.Nil) {case (g, (uid, weight)) =>
+            val visitor = User.Nil.copy(id = USER_PREFIX + uid)
+            val edge    = Edge.undirected(user.id, visitor.id, weight)
+            g ++ Graph(Set(visitor), Set(edge))
+          }
+          print("\033[1A")
 
-        // Call to VK API's "friends.get" method - get all the user's friends.
-        // For each returned user, parse himself and his locations. Connect everything
-        // into one graph.
-        // Then, connect the `user` to every user in the resulting graph.
-        // Finally, add the resulting graph into the acummulator `g`.
-        // Yes, all these -->: and ->: methods are totally perverted and hard to read. But the
-        // code became short and pretty! ^_^
-        g +!+ friendsGraph +!+ visitorsGraph
+          // Call to VK API's "friends.get" method - get all the user's friends.
+          // For each returned user, parse himself and his locations. Connect everything
+          // into one graph.
+          // Then, connect the `user` to every user in the resulting graph.
+          // Finally, add the resulting graph into the acummulator `g`.
+          // Yes, all these -->: and ->: methods are totally perverted and hard to read. But the
+          // code became short and pretty! ^_^
+          g +!+ friendsGraph +!+ visitorsGraph
+        } else g ++ friendsGraph
       }
 
       // Finalize progress bar
       progressBar(newUsers.size, newUsers.size, "Progress")
-      print("\033[4B\n\r")
+      if (wall) print("\033[4B\n\r") else println()
 
       friendsLoop(
         previous  = graph.nodes
@@ -65,6 +67,7 @@ trait FriendsExpansion extends BasicStrategy with ProgressBar with Wall {import 
       , iteration = iteration + 1
       , truncateOutskirts = truncateOutskirts
       , depth             = depth
+      , wall              = wall
       )
     }
     else if (!truncateOutskirts) graph

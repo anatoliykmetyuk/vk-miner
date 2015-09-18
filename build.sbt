@@ -16,20 +16,28 @@ lazy val p = (project in file(".")).settings(
     |
     |import scala.xml._
     |
-    |val token = "4469ea62706d65df37a86c02807ca7b2147091a56df92e9cf3fb826719030382fc02aeb31a3cd0f72202f"
+    |val token = "4db5262fb5b749ba12d1e83f02d49b0ab162d2feec7d472eb70d16824b623cba724a6442e084dc4b7898c"
     |// val gb = new GraphBuilder(api)
     |
-    |val e = new VkEnvironment with XmlSerializerComponent
+    |val env = new VkEnvironment with XmlSerializerComponent
     |                          with GexfSerializerComponent
     |                          with UniversitiesSerializerComponent {
     |  val workingDirectory = "/Users/anatolii/Desktop"
     |  val api = new VkApi(token)
     |  val universities = UniversitiesSerializer.deserialize("universities")
     |}
-    |import e._
+    |import env._
     |val api = new VkApi(token)
     |
-    |val ego = new FullEgoGroup[e.type](e)
+    |val ego = new FullEgoGroup {
+    |  override type E   = env.type     
+    |  override val e: E = env
+    |}
+    |
+    |val com = new Community {
+    |  override type E   = env.type
+    |  override val e: E = env    
+    |}
   """.stripMargin
 
 , libraryDependencies ++= Seq(

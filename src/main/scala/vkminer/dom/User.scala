@@ -34,6 +34,27 @@ trait UserComponent {this: VkEnvironment =>
     )
   }
 
+  object groups {
+    def getMembers(gid: String): Seq[JValue] = {
+      def loop(accum: Seq[JValue], iteration: Int, batch: Int): Seq[JValue] = {
+        val response = api.method(
+          "groups.getMembers"
+        , Map(
+            "group_id" -> gid
+          , "offset"   -> (iteration * batch).toString
+          , "fields"   -> userFields
+          , "v"        -> apiVersion
+          )
+        )
+
+        val items = (response \ "response" \ "items").extract[Seq[JValue]]
+
+        if (items.isEmpty) accum else loop(accum ++ items, iteration + 1, batch)
+      }
+      loop(Nil, 0, 1000)
+    }
+  }
+
 
   case class User(
     id       : String

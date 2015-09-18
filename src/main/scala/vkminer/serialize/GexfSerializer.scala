@@ -81,7 +81,7 @@ trait GexfSerializerComponent extends SerializerComponent {this: VkEnvironment =
             </nodes>
             <edges>
               {graph.edges.zipWithIndex.map {case (Edge(sid, tid, w), i) =>
-                <edge id={i.toString} source={sid} target={tid} weight={w.toString}/>
+                <edge id={i.toString} source={sid} target={tid} weight={w.toString} label={w.toString}/>
               }}
             </edges>
           </graph>

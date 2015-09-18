@@ -17,7 +17,7 @@ trait Community extends FriendsExpansion {import e._
     }
 
     println(s"Initial graph size: ${initialUsers.nodes.size}")
-    name {friendsLoop(graph = initialUsers, truncateOutskirts = true, depth = 1)}
+    name {friendsLoop(graph = initialUsers, truncateOutskirts = true, depth = 0)}
   }
 
 }

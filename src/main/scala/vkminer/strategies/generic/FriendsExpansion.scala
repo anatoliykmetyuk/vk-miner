@@ -12,7 +12,8 @@ import org.json4s.native.JsonMethods._
 
 trait FriendsExpansion extends BasicStrategy with ProgressBar with Wall {import e._
 
-  def friendsLoop(
+  @scala.annotation.tailrec
+  final def friendsLoop(
     previous         : Set[GraphNode] = Set()
   , graph            : Graph
   , iteration        : Int = 0

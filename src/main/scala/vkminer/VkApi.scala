@@ -38,10 +38,18 @@ class VkApi(val token: String) {
 
   def jsonGet(url: String): JValue = parse(get(url))
 
-  def method(name: String, args: Map[String, String]): JValue = {
+  @scala.annotation.tailrec
+  final def method(name: String, args: Map[String, String]): JValue = {
+    implicit val fmts = org.json4s.DefaultFormats
+
     val urlArgs = args.map {case (k, v) => s"$k=$v"}.mkString("&")
     val link = s"https://api.vk.com/method/$name?$urlArgs&access_token=$token"
-    jsonGet(link)
+    
+    val json = jsonGet(link)
+    (json \ "error" \ "error_code").toOption.map(_.extract[Int]) match {
+      case Some(6) => Thread.sleep(500); method(name, args)    // 6 is an error code for "too many requests per second error"
+      case _       => json
+    }
   }
 
 }

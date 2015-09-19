@@ -121,7 +121,7 @@ trait FriendsExpansion extends BasicStrategy with ProgressBar with Wall {import 
     val names = prefixed(countries, "co") ++ prefixed(cities, "ci")
 
     graph.copy(nodes = graph.nodes.map {
-      case l @ Location(name, tpe, id) if name.isEmpty => l.copy(name = names(id))
+      case l @ Location(name, tpe, id) if name.isEmpty && (id.isCity || id.isCountry) => l.copy(name = names(id))
       case x => x
     })
   }

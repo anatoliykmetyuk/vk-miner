@@ -34,9 +34,10 @@ trait GexfSerializerComponent extends SerializerComponent {this: VkEnvironment =
               <attribute id="6" title="Age" type="float"/>
               <attribute id="7" title="Occupation" type="string"/>
               <attribute id="8" title="Home town" type="string"/>
+              <attribute id="9" title="Mobile phone" type="string"/>
 
-              <attribute id="9"  title="Location name" type="string"/>
-              <attribute id="10" title="Location type" type="string"/>
+              <attribute id="10"  title="Location name" type="string"/>
+              <attribute id="11" title="Location type" type="string"/>
             </attributes>
             <nodes>
               {graph.nodes.map {
@@ -53,9 +54,10 @@ trait GexfSerializerComponent extends SerializerComponent {this: VkEnvironment =
                       <attvalue for="6"  value={u.age.map(_.toString).getOrElse("")}/>
                       <attvalue for="7"  value={u.occupation.getOrElse("")}/>
                       <attvalue for="8"  value={u.homeTown.getOrElse("")}/>
+                      <attvalue for="9"  value={u.mobile.getOrElse("")}/>
 
-                      <attvalue for="9"  value=""/>
-                      <attvalue for="10" value=""/>
+                      <attvalue for="10"  value=""/>
+                      <attvalue for="11" value=""/>
                     </attvalues>
                   </node>
 
@@ -72,9 +74,10 @@ trait GexfSerializerComponent extends SerializerComponent {this: VkEnvironment =
                       <attvalue for="6"  value=""/>
                       <attvalue for="7"  value=""/>
                       <attvalue for="8"  value=""/>
+                      <attvalue for="9"  value=""/>
 
-                      <attvalue for="9"  value={l.name}/>
-                      <attvalue for="10" value={l.tpe}/>
+                      <attvalue for="10" value={l.name}/>
+                      <attvalue for="11" value={l.tpe}/>
                     </attvalues>
                   </node>                  
               }}

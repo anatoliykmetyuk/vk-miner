@@ -123,7 +123,7 @@ trait UserComponent {this: VkEnvironment =>
     , birthday   = extractJson("bdate")
     , occupation = extractJson("type")(json \ "occupation")
     , homeTown   = extractJson("home_town")
-    , mobile     = extractJson("mobile")
+    , mobile     = extractJson("mobile_phone")
     )
   
     lazy val Nil = User("", "", "", -1, None, None, None, None)

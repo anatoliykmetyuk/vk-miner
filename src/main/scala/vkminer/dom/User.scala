@@ -8,7 +8,7 @@ import org.json4s._
 import org.json4s.native.JsonMethods._
 
 trait UserComponent {this: VkEnvironment =>
-  val userFields = "sex,bdate,city,country,home_town,education,universities,schools,occupation,relation"
+  val userFields = "sex,bdate,city,country,home_town,education,universities,schools,occupation,relation,contacts"
 
   val USER_PREFIX = "us"
 
@@ -65,6 +65,8 @@ trait UserComponent {this: VkEnvironment =>
   , birthday  : Option[String]
   , occupation: Option[String]
   , homeTown  : Option[String]
+
+  , mobile    : Option[String]
   ) extends GraphNode {
 
     def age: Option[Int] = {
@@ -95,6 +97,7 @@ trait UserComponent {this: VkEnvironment =>
         {birthday  .map {b => <birthday>{b}</birthday>    }.getOrElse(())}
         {occupation.map {o => <occupation>{o}</occupation>}.getOrElse(())}
         {homeTown  .map {h => <homeTown>{h}</homeTown>    }.getOrElse(())}
+        {mobile    .map {p => <mobile>{p}</mobile>}}
       </user>
   }
 
@@ -108,6 +111,7 @@ trait UserComponent {this: VkEnvironment =>
     , birthday   = extractXml("birthday"  )
     , occupation = extractXml("occupation")
     , homeTown   = extractXml("homeTown"  )
+    , mobile     = extractXml("mobile"    )
     )
 
     def apply(implicit json: JValue): User = User(
@@ -119,9 +123,10 @@ trait UserComponent {this: VkEnvironment =>
     , birthday   = extractJson("bdate")
     , occupation = extractJson("type")(json \ "occupation")
     , homeTown   = extractJson("home_town")
+    , mobile     = extractJson("mobile")
     )
   
-    lazy val Nil = User("", "", "", -1, None, None, None)
+    lazy val Nil = User("", "", "", -1, None, None, None, None)
   }
 
 }

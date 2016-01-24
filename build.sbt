@@ -1,3 +1,5 @@
+SubscriptSbt.projectSettings
+
 lazy val p = (project in file(".")).settings(
   sbtVersion   := "0.13.7"
 , scalaVersion := "2.11.7"
@@ -47,6 +49,9 @@ lazy val p = (project in file(".")).settings(
 
   , "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
   )
+
+, resolvers += Resolver.sonatypeRepo("snapshots")
+, libraryDependencies += "org.subscript-lang" %% "subscript-swing" % "3.0.0-SNAPSHOT"
 
 , javaOptions += "-Xmx4g"
 , javaOptions += "-Xms2g"

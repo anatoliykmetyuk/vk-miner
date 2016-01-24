@@ -33,15 +33,14 @@ trait FriendsExpansion extends BasicStrategy
       // For each user, we'll obtain his all friends (with their locations),
       // and connect them to this user. The results will be aggreated to this graph.
       val iterationGraph = newUsers.toList.zipWithIndex.foldLeft(Graph()) {case (g, (user, i)) =>
-        update(ITERATION, i, newUsers.size)
-        progressBar(i, newUsers.size, "Progress")
+        progressBar(i, newUsers.size, ITERATION, "Progress")
         if (wall) println()
 
         val friendsGraph: Graph = {
           def task = user -->:[User] (friends.get(user) \ "response" \ "items").extract[Seq[JValue]]
             .foldLeft(Graph()) {(g, fj) => g ++ (User(fj) ->: Location(fj))}
 
-          if (wall) withProgressBar(0, 5, "User") {task} else task
+          if (wall) withProgressBar(0, 5, USER, "User") {task} else task
         }
 
         if (wall) {
@@ -64,8 +63,7 @@ trait FriendsExpansion extends BasicStrategy
       }
 
       // Finalize progress bar
-      update(ITERATION, newUsers.size, newUsers.size)
-      progressBar(newUsers.size, newUsers.size, "Progress")
+      progressBar(newUsers.size, newUsers.size, ITERATION, "Progress")
       if (wall) print("\033[4B\n\r") else println()
 
       friendsLoop(
@@ -137,4 +135,5 @@ trait FriendsExpansion extends BasicStrategy
 object FriendsExpansion {
   val DEPTH     = "depth"
   val ITERATION = "iteration"
+  val USER      = "user"
 }

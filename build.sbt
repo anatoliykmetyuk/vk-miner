@@ -16,7 +16,7 @@ lazy val p = (project in file(".")).settings(
     |
     |import scala.xml._
     |
-    |val token = "017e3b386a998c8498d455e8293b33156ac63f5d6fd12b515117c2f2a71b84ef3641ad9bb2be3cb6a607b"
+    |val token = None //Some("0e3ebf9c4e93aac1d0f607f3b0072b1efd48fad836a3281b6374149d1075291c07e96af360f0e4fab9e2a")
     |// val gb = new GraphBuilder(api)
     |
     |val env = new VkEnvironment with XmlSerializerComponent
@@ -41,10 +41,9 @@ lazy val p = (project in file(".")).settings(
   """.stripMargin
 
 , libraryDependencies ++= Seq(
-    "commons-io" % "commons-io" % "2.4",
-    "org.apache.httpcomponents" % "httpclient" % "4.4",
-    "org.json4s" %% "json4s-native" % "3.2.11",
-    "org.apache.spark" %% "spark-mllib" % "1.2.1"
+    "commons-io" % "commons-io" % "2.4"
+  , "org.apache.httpcomponents" % "httpclient" % "4.4"
+  , "org.json4s" %% "json4s-native" % "3.2.11"
 
   , "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
   )

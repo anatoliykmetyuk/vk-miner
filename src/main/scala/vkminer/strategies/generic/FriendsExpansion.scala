@@ -10,7 +10,10 @@ import org.json4s._
 import org.json4s.native.JsonMethods._
 
 
-trait FriendsExpansion extends BasicStrategy with ProgressBar with Wall {import e._
+trait FriendsExpansion extends BasicStrategy
+                          with ProgressBar
+                          with Wall {import e._
+  import FriendsExpansion._
 
   @scala.annotation.tailrec
   final def friendsLoop(
@@ -21,6 +24,7 @@ trait FriendsExpansion extends BasicStrategy with ProgressBar with Wall {import 
   , depth            : Int = 1
   , wall             : Boolean = true
   ): Graph = if (iteration <= depth) {
+      update(DEPTH, iteration, depth)
       println(s"Iteration $iteration of $depth. Database size: ${graph.nodes.size}. Edges: ${graph.edges.size}.")
 
       // Obtain the new users friends of whom need to be esteblished and connected
@@ -29,6 +33,7 @@ trait FriendsExpansion extends BasicStrategy with ProgressBar with Wall {import 
       // For each user, we'll obtain his all friends (with their locations),
       // and connect them to this user. The results will be aggreated to this graph.
       val iterationGraph = newUsers.toList.zipWithIndex.foldLeft(Graph()) {case (g, (user, i)) =>
+        update(ITERATION, i, newUsers.size)
         progressBar(i, newUsers.size, "Progress")
         if (wall) println()
 
@@ -59,6 +64,7 @@ trait FriendsExpansion extends BasicStrategy with ProgressBar with Wall {import 
       }
 
       // Finalize progress bar
+      update(ITERATION, newUsers.size, newUsers.size)
       progressBar(newUsers.size, newUsers.size, "Progress")
       if (wall) print("\033[4B\n\r") else println()
 
@@ -126,4 +132,9 @@ trait FriendsExpansion extends BasicStrategy with ProgressBar with Wall {import 
       case x => x
     })
   }
+}
+
+object FriendsExpansion {
+  val DEPTH     = "depth"
+  val ITERATION = "iteration"
 }

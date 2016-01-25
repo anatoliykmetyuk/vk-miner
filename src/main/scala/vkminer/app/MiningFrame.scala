@@ -27,8 +27,9 @@ import java.io.File
 class MiningFrame extends Frame with FrameProcess
                      with MiningFrameLogic
                      with VkEngine {
-  title = "VK Mining"
-  location = new Point(300, 300)
+  title     = "VK Mining"
+  location  = new Point(300, 300)
+  resizable = false
 
   // Parameters
   val idLabel         = new Label("Id")

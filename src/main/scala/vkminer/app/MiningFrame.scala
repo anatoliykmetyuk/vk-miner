@@ -126,7 +126,7 @@ trait MiningFrameLogic {this: MiningFrame =>
     processingSeq(which: String) =
       var target: CallGraphNode = null
       @absorbAAHappened(target): [
-        @{target = here}: guard: idText, {() => !idText.text.isEmpty}
+        @{target = here}: guard: idText, {() => !idText.text.isEmpty && outputFile.isDefined}
         if which == PERSON then personBtn else communityBtn
         process(which) ~~(g: Graph)~~> serialize
                       +~~(null)~~> [+]

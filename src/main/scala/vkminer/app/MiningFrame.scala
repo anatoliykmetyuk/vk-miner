@@ -13,6 +13,7 @@ import vkminer.VkApi
 import vkminer.util.Scripts._
 import vkminer.serialize._
 import vkminer.dom._
+import vkminer.strategies._
 
 import java.awt.Point
 import javax.swing.BorderFactory
@@ -25,11 +26,7 @@ import java.io.File
 
 class MiningFrame extends Frame with FrameProcess
                      with MiningFrameLogic
-                     with VkEnvironment
-                     with GexfSerializerComponent
-                     with UniversitiesSerializerComponent
-                     with VkEnvironmentSettings {
-
+                     with VkEngine {
   title = "VK Mining"
   location = new Point(300, 300)
 
@@ -84,7 +81,31 @@ class MiningFrame extends Frame with FrameProcess
 
 }
 
+trait VkEngine {this: MiningFrame =>
+  val environment = new VkEnvironment with XmlSerializerComponent
+                                      with GexfSerializerComponent
+                                      with UniversitiesSerializerComponent {
+    val workingDirectory = "/Users/anatolii/Desktop"
+    val api = new VkApi(None)
+    val universities = UniversitiesSerializer.deserialize("universities")
+  }
+
+  val ego = new FullEgoGroup {
+    override type E   = environment.type     
+    override val e: E = environment
+  }
+
+  val com = new Community {
+    override type E   = environment.type
+    override val e: E = environment    
+  }
+}
+
 trait MiningFrameLogic {this: MiningFrame =>
+  import environment._
+
+  val PERSON    = "person"
+  val COMMUNITY = "community"
 
   var outputFile: Option[File] = None
 
@@ -99,26 +120,24 @@ trait MiningFrameLogic {this: MiningFrame =>
       let outputLabel.text = file.getAbsolutePath
     ]
 
-    personSeq    = processingSeq(personBtn   )
-    communitySeq = processingSeq(communityBtn)
+    personSeq    = processingSeq(PERSON   )
+    communitySeq = processingSeq(COMMUNITY)
 
-    processingSeq(btn: Button) =
+    processingSeq(which: String) =
       var target: CallGraphNode = null
       @absorbAAHappened(target): [
         @{target = here}: guard: idText, {() => !idText.text.isEmpty}
-        btn
-        {..}
+        if which == PERSON then personBtn else communityBtn
+        process(which) ~~(g: Graph)~~> serialize
+                      +~~(null)~~> [+]
       ]
+
+    serialize = [+]
+    process(which: String) = [+]
 
     selectFile =  val chooser = new FileChooser
                   if chooser.showSaveDialog(null) == FileChooser.Result.Approve then [
                     val extension = chooser.selectedFile.getAbsolutePath.reverse.takeWhile(_ != '.').reverse
                     if extension != "gexf" then ^new File(chooser.selectedFile.getAbsolutePath + ".gexf") else ^chooser.selectedFile
                   ]
-}
-
-trait VkEnvironmentSettings {this: MiningFrame =>
-  val workingDirectory = "/Users/anatolii/Desktop"
-  val api              = new VkApi(None)
-  val universities     = UniversitiesSerializer.deserialize("universities")
 }

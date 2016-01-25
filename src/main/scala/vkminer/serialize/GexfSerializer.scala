@@ -10,14 +10,16 @@ trait GexfSerializerComponent extends SerializerComponent {this: VkEnvironment =
   object GexfSerializer extends Serializer[Graph] {
     val extension = "gexf"
 
-    override def serialize  (graph: Graph, name: String) {
+    override def serialize(graph: Graph, name: String) = serialize(graph, file(name))
+
+    def serialize(graph: Graph, file: java.io.File) {
       val bom    = "\uFEFF"
       val header = """<?xml version="1.0" encoding="UTF-8"?>"""
       val xmlRaw = produceXml(graph)
 
       val pp  = new PrettyPrinter(200, 2)
       val xml = bom + header + "\n" + pp.format(xmlRaw)
-      FileUtils.writeStringToFile(file(name), xml)
+      FileUtils.writeStringToFile(file, xml)      
     }
 
     def produceXml(graph: Graph): Node =

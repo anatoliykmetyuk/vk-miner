@@ -57,9 +57,13 @@ class MiningFrame extends Frame with FrameProcess
   )}
 
   // Progress bars
-  val iterationProgress = new ProgressBar {label = "Iteration"; labelPainted = true; min = 0}
-  val userProgress      = new ProgressBar {label = "User"     ; labelPainted = true; min = 0}
-  val wallProgress      = new ProgressBar {label = "Wall"     ; labelPainted = true; min = 0}
+  val iterationProgressText = "Users"
+  val userProgressText      = "Current User"
+  val wallProgressText      = "Wall"
+
+  val iterationProgress = new ProgressBar {label = iterationProgressText; labelPainted = true; min = 0}
+  val userProgress      = new ProgressBar {label = userProgressText     ; labelPainted = true; min = 0}
+  val wallProgress      = new ProgressBar {label = wallProgressText     ; labelPainted = true; min = 0}
   
   // Main panel
   val mainPanel = new GridPanel(6, 1) {
@@ -155,6 +159,11 @@ trait MiningFrameLogic {this: MiningFrame =>
 
 
     processingSeq(which: String) =
+      // Clean-up
+      let iterationProgress.value = 0
+      let userProgress     .value = 0
+      let wallProgress     .value = 0
+
       var target: CallGraphNode = null
       @absorbAAHappened(target): [
         @{target = here}: guard: idText, {() => !idText.text.isEmpty && outputFile.isDefined}
@@ -167,9 +176,9 @@ trait MiningFrameLogic {this: MiningFrame =>
       if which == PERSON then {* ego(idText.text, 1, true, wallCheckBox.selected) *}^
       else                    {* com(idText.text,          wallCheckBox.selected) *}^
     
-    monitor = && monitorTrigger(iterationTrigger, iterationProgress, "Iteration")
-                 monitorTrigger(userTrigger     , userProgress     , "User"     )
-                 monitorTrigger(wallTrigger     , wallProgress     , "Wall"     )
+    monitor = && monitorTrigger(iterationTrigger, iterationProgress, iterationProgressText)
+                 monitorTrigger(userTrigger     , userProgress     , userProgressText     )
+                 monitorTrigger(wallTrigger     , wallProgress     , wallProgressText     )
 
     monitorTrigger(trigger: ValueTrigger, bar: ProgressBar, name: String) =
       [trigger ~~((i: Int, max: Int))~~> @gui: {!
@@ -178,5 +187,5 @@ trait MiningFrameLogic {this: MiningFrame =>
         bar.max   = max 
       !}] ...
 
-    serialize(g: Graph) = GexfSerializer.serialize(g, "foo")
+    serialize(g: Graph) = GexfSerializer.serialize(g, outputFile.get)
 }

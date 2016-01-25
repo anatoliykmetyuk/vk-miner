@@ -97,6 +97,7 @@ trait VkEngine {this: MiningFrame =>
 
   import vkminer.strategies.generic.FriendsExpansion._
   val listener: (String, Int, Int) => Unit = {(tpe, i, max) =>
+    if (Thread.currentThread.isInterrupted) throw new InterruptedException
     val trigger = tpe match {
       case DEPTH     => depthTrigger    
       case ITERATION => iterationTrigger
@@ -158,7 +159,8 @@ trait MiningFrameLogic {this: MiningFrame =>
       @absorbAAHappened(target): [
         @{target = here}: guard: idText, {() => !idText.text.isEmpty && outputFile.isDefined}
         if which == PERSON then personBtn else communityBtn
-        [[process(which) ~~(g: Graph)~~> serialize(g)] || monitor] / cancelBtn
+        [[process(which) ~~(g: Graph)~~> serialize(g)
+                       +~/~(null    )~~> [+]] || monitor] / cancelBtn
       ]
 
     process(which: String) =

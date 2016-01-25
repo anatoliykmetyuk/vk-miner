@@ -1,5 +1,7 @@
 package vkminer.serialize
 
+import java.io.InputStream
+
 import scala.collection.JavaConversions._
 import scala.language.implicitConversions
 
@@ -18,9 +20,12 @@ trait UniversitiesSerializerComponent extends SerializerComponent {this: VkEnvir
       FileUtils.writeStringToFile(file(name), csv)
     }
 
-    override def deserialize(name: String): Map[String, (String, String)] = {
+    override def deserialize(name: String): Map[String, (String, String)] =
+      deserialize(FileUtils.openInputStream(file(name)))
+
+    def deserialize(is: InputStream, encoding: String = "UTF-8"): Map[String, (String, String)] = {
       val pat = """(\d+),(\d+),(\d+)""".r
-      FileUtils.readLines(file(name)).map {case pat(uid, coId, ciId) => uid -> (coId -> ciId)}.toMap
+      IOUtils.readLines(is, encoding).map {case pat(uid, coId, ciId) => uid -> (coId -> ciId)}.toMap
     }
 
   }

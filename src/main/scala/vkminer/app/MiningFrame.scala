@@ -89,9 +89,9 @@ trait VkEngine {this: MiningFrame =>
   val environment = new VkEnvironment with XmlSerializerComponent
                                       with GexfSerializerComponent
                                       with UniversitiesSerializerComponent {
-    val workingDirectory = "/Users/anatolii/Desktop"
+    val workingDirectory = null
     val api = new VkApi(None)
-    val universities = UniversitiesSerializer.deserialize("universities")
+    val universities = UniversitiesSerializer.deserialize(getClass.getResourceAsStream("/universities.csv"))
   }
 
   val depthTrigger     = new ValueTrigger
@@ -172,7 +172,7 @@ trait MiningFrameLogic {this: MiningFrame =>
       let iterationProgress.value = 0
       let userProgress     .value = 0
       let wallProgress     .value = 0
-      
+
       if which == PERSON then {* ego(idText.text, 1, true, wallCheckBox.selected) *}^
       else                    {* com(idText.text,          wallCheckBox.selected) *}^
     

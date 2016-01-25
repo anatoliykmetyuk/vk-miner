@@ -159,11 +159,6 @@ trait MiningFrameLogic {this: MiningFrame =>
 
 
     processingSeq(which: String) =
-      // Clean-up
-      let iterationProgress.value = 0
-      let userProgress     .value = 0
-      let wallProgress     .value = 0
-
       var target: CallGraphNode = null
       @absorbAAHappened(target): [
         @{target = here}: guard: idText, {() => !idText.text.isEmpty && outputFile.isDefined}
@@ -173,6 +168,11 @@ trait MiningFrameLogic {this: MiningFrame =>
       ]
 
     process(which: String) =
+      // Clean-up
+      let iterationProgress.value = 0
+      let userProgress     .value = 0
+      let wallProgress     .value = 0
+      
       if which == PERSON then {* ego(idText.text, 1, true, wallCheckBox.selected) *}^
       else                    {* com(idText.text,          wallCheckBox.selected) *}^
     

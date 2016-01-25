@@ -57,9 +57,9 @@ class MiningFrame extends Frame with FrameProcess
   )}
 
   // Progress bars
-  val iterationProgress = new ProgressBar {label = "Iteration"; labelPainted = true}
-  val userProgress      = new ProgressBar {label = "User"     ; labelPainted = true}
-  val wallProgress      = new ProgressBar {label = "Wall"     ; labelPainted = true}
+  val iterationProgress = new ProgressBar {label = "Iteration"; labelPainted = true; min = 0}
+  val userProgress      = new ProgressBar {label = "User"     ; labelPainted = true; min = 0}
+  val wallProgress      = new ProgressBar {label = "Wall"     ; labelPainted = true; min = 0}
   
   // Main panel
   val mainPanel = new GridPanel(6, 1) {
@@ -90,14 +90,37 @@ trait VkEngine {this: MiningFrame =>
     val universities = UniversitiesSerializer.deserialize("universities")
   }
 
+  val depthTrigger     = new ValueTrigger
+  val iterationTrigger = new ValueTrigger
+  val userTrigger      = new ValueTrigger
+  val wallTrigger      = new ValueTrigger
+
+  import vkminer.strategies.generic.FriendsExpansion._
+  val listener: (String, Int, Int) => Unit = {(tpe, i, max) =>
+    val trigger = tpe match {
+      case DEPTH     => depthTrigger    
+      case ITERATION => iterationTrigger
+      case USER      => userTrigger     
+      case WALL      => wallTrigger
+
+      case x => println("LEAK! " + x); null
+    }
+
+    trigger.triggerWithValue((i, max))
+  }
+
   val ego = new FullEgoGroup {
     override type E   = environment.type     
     override val e: E = environment
+
+    listeners :+= listener
   }
 
   val com = new Community {
     override type E   = environment.type
-    override val e: E = environment    
+    override val e: E = environment
+
+    listeners :+= listener
   }
 }
 
@@ -120,24 +143,38 @@ trait MiningFrameLogic {this: MiningFrame =>
       let outputLabel.text = file.getAbsolutePath
     ]
 
+    selectFile =  val chooser = new FileChooser
+                  if chooser.showSaveDialog(null) == FileChooser.Result.Approve then [
+                    val extension = chooser.selectedFile.getAbsolutePath.reverse.takeWhile(_ != '.').reverse
+                    if extension != "gexf" then ^new File(chooser.selectedFile.getAbsolutePath + ".gexf") else ^chooser.selectedFile
+                  ]
+
     personSeq    = processingSeq(PERSON   )
     communitySeq = processingSeq(COMMUNITY)
+
 
     processingSeq(which: String) =
       var target: CallGraphNode = null
       @absorbAAHappened(target): [
         @{target = here}: guard: idText, {() => !idText.text.isEmpty && outputFile.isDefined}
         if which == PERSON then personBtn else communityBtn
-        process(which) ~~(g: Graph)~~> serialize
-                      +~~(null)~~> [+]
+        [[process(which) ~~(g: Graph)~~> serialize(g)] || monitor] / cancelBtn
       ]
 
-    serialize = [+]
-    process(which: String) = [+]
+    process(which: String) =
+      if which == PERSON then {* ego(idText.text, 1, true, wallCheckBox.selected) *}^
+      else                    {* com(idText.text,          wallCheckBox.selected) *}^
+    
+    monitor = && monitorTrigger(iterationTrigger, iterationProgress, "Iteration")
+                 monitorTrigger(userTrigger     , userProgress     , "User"     )
+                 monitorTrigger(wallTrigger     , wallProgress     , "Wall"     )
 
-    selectFile =  val chooser = new FileChooser
-                  if chooser.showSaveDialog(null) == FileChooser.Result.Approve then [
-                    val extension = chooser.selectedFile.getAbsolutePath.reverse.takeWhile(_ != '.').reverse
-                    if extension != "gexf" then ^new File(chooser.selectedFile.getAbsolutePath + ".gexf") else ^chooser.selectedFile
-                  ]
+    monitorTrigger(trigger: ValueTrigger, bar: ProgressBar, name: String) =
+      [trigger ~~((i: Int, max: Int))~~> @gui: {!
+        bar.label = name + " " + i + "/" + max
+        bar.value = i
+        bar.max   = max 
+      !}] ...
+
+    serialize(g: Graph) = GexfSerializer.serialize(g, "foo")
 }

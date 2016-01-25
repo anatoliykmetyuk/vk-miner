@@ -29,7 +29,7 @@ trait Wall extends BasicStrategy with ProgressBar {import e._
           extractJson("count")(j \ "reposts").get.toInt)
       }
 
-      if (printProgress) withProgressBar(idx, 2, USER, "Posts")(task)
+      if (printProgress) withProgressBar(idx, 2, WALL, "Posts")(task)
       else task
     }
 
@@ -44,7 +44,7 @@ trait Wall extends BasicStrategy with ProgressBar {import e._
         Comment(extractJson("id").get, extractJson("from_id").get, extractJson("count")(j \ "likes").get.toInt)
       }
 
-      if (printProgress) withProgressBar(idx, haveComments.size, USER, "Comments")(task)
+      if (printProgress) withProgressBar(idx, haveComments.size, WALL, "Comments")(task)
       else task
     }
   }
@@ -62,7 +62,7 @@ trait Wall extends BasicStrategy with ProgressBar {import e._
       val tpe = e match {case _: Post => "post" case _: Comment => "comment"}
       def task = (likes.getList(wallOwnerId, e.postId, tpe, filter) \ "response" \ "items").extract[Seq[Long]].map(_.toString)
       
-      if (printProgress) withProgressBar(idx, target.size, USER, label)(task)
+      if (printProgress) withProgressBar(idx, target.size, WALL, label)(task)
       else task
     }
   }

@@ -19,7 +19,7 @@ trait GexfSerializerComponent extends SerializerComponent {this: VkEnvironment =
 
       val pp  = new PrettyPrinter(200, 2)
       val xml = bom + header + "\n" + pp.format(xmlRaw)
-      FileUtils.writeStringToFile(file, xml)      
+      FileUtils.writeStringToFile(file, xml, encoding)      
     }
 
     def produceXml(graph: Graph): Node =

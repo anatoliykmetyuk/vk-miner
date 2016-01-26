@@ -2,8 +2,8 @@
 This application allows you to map out our social circle or a community of the [VK](https://vk.com) network. It creates a `*.gexf` graph files that can be opened by [Gephi](https://gephi.org/).
 
 ## Prerequisites
-1. [Gephi](https://gephi.org/). Note that it runs properly only on Java 6. It won't run on higher versions.
-2. Java 6
+1. [Gephi](https://gephi.org/)
+2. Java 8
 
 ## Usage
 1. Download the latest release and unzip it

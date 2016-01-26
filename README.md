@@ -1,5 +1,5 @@
 # VK Miner
-This application allows you to map out our social circle or a community of the [VK](https://vk.com) network. It creates a `*.gexf` graph files that can be opened by [Gephi](https://gephi.org/).
+This application allows you to map out our social circle or a community of the [VK](https://vk.com) network. It creates `*.gexf` graph files that can be opened by [Gephi](https://gephi.org/).
 
 ## Prerequisites
 1. [Gephi](https://gephi.org/)

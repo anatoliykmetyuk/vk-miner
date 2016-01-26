@@ -1,7 +1,7 @@
 SubscriptSbt.projectSettings
 
 lazy val vkMiner = (project in file(".")).settings(
-  version := "1.0.0"
+  version := "1.0.1"
 , name    := "vk-miner"
 
 , sbtVersion   := "0.13.7"

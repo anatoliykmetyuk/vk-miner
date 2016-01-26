@@ -12,7 +12,7 @@ trait GexfSerializerComponent extends SerializerComponent {this: VkEnvironment =
 
     override def serialize(graph: Graph, name: String) = serialize(graph, file(name))
 
-    def serialize(graph: Graph, file: java.io.File) {
+    def serialize(graph: Graph, file: java.io.File, encoding: String = "UTF-8") {
       val bom    = "\uFEFF"
       val header = """<?xml version="1.0" encoding="UTF-8"?>"""
       val xmlRaw = produceXml(graph)

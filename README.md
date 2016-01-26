@@ -18,6 +18,5 @@ This application allows you to map out our social circle or a community of the [
 6. Press `Person` button if the id you've entered belongs to a user's profile; press `Community` if it is a community.
 7. After some time, `*.gexf` graf file will be created. You can open it in Gephi. See Gephi's official site to learn how to use it.
 
-## Screenshots
-
-![screen](http://s10.postimg.org/fnvuupw09/image.png)
+## Example
+![screen](http://s10.postimg.org/igbqsw955/image.png)

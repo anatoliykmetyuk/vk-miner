@@ -16,7 +16,7 @@ lazy val vkMiner = (project in file(".")).settings(
   )
 
 , resolvers += Resolver.sonatypeRepo("snapshots")
-, libraryDependencies += "org.subscript-lang" %% "subscript-swing" % "3.0.0-SNAPSHOT"
+, libraryDependencies += "org.subscript-lang" %% "subscript-swing" % "3.0.1"
 
 , javaOptions += "-Xmx4g"
 , javaOptions += "-Xms2g"

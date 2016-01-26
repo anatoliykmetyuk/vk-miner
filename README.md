@@ -3,7 +3,7 @@ This application allows you to map out our social circle or a community of the [
 
 ## Prerequisites
 1. [Gephi](https://gephi.org/)
-2. Java 8
+2. [Java Runtime Environment (JRE) 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 
 ## Usage
 1. Download the latest release and unzip it

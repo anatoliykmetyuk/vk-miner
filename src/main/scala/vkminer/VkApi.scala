@@ -27,7 +27,7 @@ class VkApi(val maybeToken: Option[String]) {
     var content: String = null
     try {
       val entity  = response.getEntity
-      content = IOUtils.toString(entity.getContent)
+      content = IOUtils.toString(entity.getContent, "UTF-8")
       EntityUtils.consume(entity)
     } finally {
       response.close()

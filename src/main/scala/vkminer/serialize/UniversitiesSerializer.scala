@@ -17,7 +17,7 @@ trait UniversitiesSerializerComponent extends SerializerComponent {this: VkEnvir
     /** universtyId -> (countryId, cityId) */
     override def serialize(unis: Map[String, (String, String)], name: String) {
       val csv = unis.toSeq.map {case (uid, (coId, ciId)) => s"$uid,$coId,$ciId"}.mkString("\n")
-      FileUtils.writeStringToFile(file(name), csv)
+      FileUtils.writeStringToFile(file(name), csv, "UTF-8")
     }
 
     override def deserialize(name: String): Map[String, (String, String)] =
